@@ -1,0 +1,92 @@
+Phase 1 - Add Week Awareness - Done, can incorporate more when relevant during 2026 season
+
+Phase 1.5 shore up documentation - Mostly Done
+
+Phase 2.1 - add a tracker to the processing message (i.e. Game 7 out of 15) - Done
+Phase 2.2 - add unit tests - Meh
+
+Phase 3 - Save Weekly Data Final Automatically - Mostly done
+
+Phase 4 - Prevent Duplicate runs - Mostly Done
+
+Phase 6 - Admin vs Viewer mode & Read from files when they exist
+Admin only can update weeks and call APIs. Viewer accesses via files 
+
+Phase 7 - Query stats - mostly done
+
+Phase 8 - Shore up all scenarios
+Phase 8.0.1 - shore up scenarios of a missing owner by creating a place holder owner object - Done
+Phase 8.1.1 - Multiple tackles in the same sleeper matchup - In progress
+Phase 8.2 - Multiple QBs with tackles in the same ESPN game - Should be complete
+Phase 8.3 - Are we doing anything with LeagueMember.tackles_for and LeagueMembers.tackles_against - Yes, done
+
+Phase 9 - Web Dashboard
+
+Current Step: Shore up all scenarios and outputs
+- Phase 8 Multiple tackles in Sleeper matchup (Week 7 cap v stallter) - might be done 
+- Bench and Free Agent not working currently - might be done 
+- Look into Devins season totals against  and why it adds up to 400 points against out of 6 tackles 
+
+┌──────────────────────────┐
+│      Program Startup      │
+│  load_all_existing_weeks  │
+└──────────────┬───────────┘
+               │
+               ▼
+┌──────────────────────────┐
+│   season_data (dict)      │
+│ {week: raw_json_data}     │
+└──────────────┬───────────┘
+               │
+               ▼
+┌──────────────────────────┐
+│      user_input()         │
+│   (pure intent parser)    │
+└──────────────┬───────────┘
+               │
+               ▼
+┌──────────────────────────┐
+│   Orchestration Layer     │
+│ process_user_choice()     │
+└──────────────┬───────────┘
+               │
+               ▼
+        ┌───────────────┐
+        │  Admin Mode?   │
+        └───────┬───────┘
+                │
+     ┌──────────┴──────────┐
+     │                     │
+     ▼                     ▼
+┌──────────────┐     ┌──────────────────────┐
+│ Viewer Mode   │     │ Admin Mode           │
+│ (no API)      │     │ (API allowed)        │
+└──────┬────────┘     └──────────┬──────────┘
+       │                          │
+       ▼                          ▼
+┌──────────────────────────┐   ┌──────────────────────────┐
+│   get_week_data(week)     │   │   get_week_data(week)     │
+│  (file-aware access)      │   │  (file-aware access)      │
+└───────┬─────────┬────────┘   └───────┬─────────┬────────┘
+        │         │                    │         │
+   file exists   file missing     file exists   file missing
+        │         │                    │         │
+        ▼         ▼                    ▼         ▼
+┌────────────┐  ┌────────────────┐  ┌────────────┐  ┌──────────────────────┐
+│ load file  │  │  ERROR (viewer │  │ load file  │  │ run_week_pipeline     │
+│ raw JSON   │  │  cannot run)   │  │ raw JSON   │  │ (Sleeper + ESPN APIs) │
+└──────┬─────┘  └────────────────┘  └──────┬─────┘  └──────────┬──────────┘
+       │                                   │                    │
+       ▼                                   ▼                    ▼
+┌──────────────────────────┐     ┌──────────────────────────┐   ┌──────────────────────────┐
+│ League.hydrate_from_file │     │ League.hydrate_from_file │   │ League.hydrate_from_api  │
+│ (convert JSON → objects) │     │ (convert JSON → objects) │   │ (convert API → objects)  │
+└──────────────┬───────────┘     └──────────────┬───────────┘   └──────────────┬───────────┘
+               │                                 │                           │
+               ▼                                 ▼                           ▼
+        ┌──────────────────────────────┐   ┌──────────────────────────────┐
+        │   Fully hydrated League       │   │   Fully hydrated League       │
+        │ (identical internal state)    │   │ (identical internal state)    │
+        └──────────────────────────────┘   └──────────────────────────────┘
+
+

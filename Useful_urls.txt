@@ -1,0 +1,14 @@
+2025 Defensive Stats
+https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/statistics/byathlete?region=us&lang=en&contentorigin=espn&isqualified=false&category=defense&position=8&seasontype=2
+
+Weekly Scoreboard:
+"https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?week=7"
+
+Individual Game Stats with QB Tackle:
+https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=401772861"
+
+Sleeper Matchups: 
+https://api.sleeper.app/v1/league/1257089031162830848/matchups/1"
+
+Sleeper Rosters:
+https://api.sleeper.app/v1/league/1257089031162830848/rosters

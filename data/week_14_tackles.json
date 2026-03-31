@@ -1,0 +1,29 @@
+[
+    {
+        "qb": {
+            "espn_id": "2577417",
+            "sleeper_id": "3294",
+            "name": "Dak Prescott",
+            "nfl_team": "Dallas Cowboys"
+        },
+        "owner": {
+            "user_id": "1000064656527921152",
+            "display_name": "cdot25",
+            "team_name": "He\u2019s DAK, voldemort\u2019s DAK",
+            "roster_id": 6
+        },
+        "opponent": {
+            "user_id": "1130229940500324352",
+            "display_name": "macormacker",
+            "team_name": "Going to Loveland",
+            "roster_id": 5
+        },
+        "week": 14,
+        "game_id": "401772947",
+        "count": 1,
+        "points": 100,
+        "impact": "No affect",
+        "team_points": 147.18,
+        "opp_points": 134.38
+    }
+]

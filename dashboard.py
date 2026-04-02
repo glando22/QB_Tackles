@@ -1,6 +1,6 @@
 # dashboard.py
 import streamlit as st
-from data_loader import load_week,load_member_data
+from data_loader import load_week
 from aggregator import aggregate_season
 
 st.set_page_config(page_title="QB Tackle Tracker", layout="wide")

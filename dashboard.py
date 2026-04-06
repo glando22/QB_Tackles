@@ -3,13 +3,29 @@ import streamlit as st
 from data_loader import load_week
 from aggregator import aggregate_season
 
+def resolve_owner(tackle):
+    if tackle["owner"]["user_id"] == "-1": 
+        if tackle["impact"] == "Free Agent":
+            return "Free Agent QB"
+        elif tackle["impact"] == "Bye":
+            return "Bye Week"
+    return f"{tackle["owner"]["display_name"]} - {tackle["owner"]["team_name"]}"
+
+def resolve_opponent(tackle):
+    if tackle["opponent"]["user_id"] == "-1": 
+        if tackle["impact"] == "Free Agent":
+            return "Free Agent QB"
+        elif tackle["impact"] == "Bye Week":
+            return "Bye Week"
+    return f"{tackle["opponent"]["display_name"]} - {tackle["opponent"]["team_name"]}"
+
 st.set_page_config(page_title="QB Tackle Tracker", layout="wide")
 
 st.title("🏈 QB Tackle Tracker Dashboard")
 
-page = st.sidebar.selectbox(
+page = st.sidebar.radio(
     "Navigate",
-    ["Weekly Report", "Season Leaderboards", "Team Profiles"]
+    ["Weekly Report", "Season Leaderboards", "Team Profiles","QB Tackle Tracker Info"]
 )
 
 qb_stats, owner_stats = aggregate_season()
@@ -19,14 +35,18 @@ qb_stats, owner_stats = aggregate_season()
 # -------------------------
 if page == "Weekly Report":
     st.header("Weekly Tackle Report")
-
-    week = st.selectbox("Select Week", list(range(1, 19)))
+    col_yr,col_wk = st.columns(2)
+    with col_yr:
+        year = st.selectbox("Select Year", ["2025", "2026"],width=100)  # Placeholder for future years
+    with col_wk:
+        week = st.selectbox("Select Week", list(range(1, 19)),width=100)  
     data = load_week(week)
 
     weekly_table= [{
+        
         "QB": f"{t["qb"]["name"]} - {t["qb"]["nfl_team"]}",
-        "Owner": f"{t["owner"]["display_name"]} - {t["owner"]["team_name"]}",
-        "Opponent": f"{t["opponent"]["display_name"]} - {t["opponent"]["team_name"]}",
+        "Owner": resolve_owner(t),
+        "Opponent": resolve_opponent(t),
         "Tackles": t["count"],
         "Impact": t["impact"],
     }
@@ -45,6 +65,7 @@ elif page == "Season Leaderboards":
     st.header("Season Leaderboards")
 
     st.subheader(f"Top QBs by Tackles - Total Tackles: {sum(v['tackles'] for v in qb_stats.values())}")
+    year = st.selectbox("Select Year", ["2025", "2026","All-time"])  
     qb_table = [
         {
             "QB": v["name"],
@@ -55,6 +76,7 @@ elif page == "Season Leaderboards":
         }
         for v in qb_stats.values()
     ]
+    qb_table = sorted(qb_table, key=lambda x: x["Tackles"], reverse=True)
     st.dataframe(qb_table,height="content")
 
     st.subheader("Top Owners by Tackles For")
@@ -75,21 +97,50 @@ elif page == "Season Leaderboards":
 # -------------------------
 elif page == "Team Profiles":
     st.header("Team Profiles")
+    year = st.selectbox("Select Year", ["2025", "2026","All-time"]) 
 
-    owner = st.selectbox("Select Owner", list(owner_stats.keys()))
+    owner_options = {
+        f"{v["display_name"]} - {v["team_name"]}": k
+        for k, v in owner_stats.items()
+        if k != "-1"
+    }
+
+    selected_display_name = st.selectbox("Select Owner", list(owner_options.keys()))
+
+    owner=owner_options[selected_display_name]
     stats = owner_stats[owner]
 
     st.subheader(f"{stats['display_name']} — {stats['team_name']}")
     st.json(stats)
 
-# -------------------------
-# RIVALRIES
-# -------------------------
-# elif page == "Rivalries":
-#     st.header("Rivalry Analyzer")
+elif page=="QB Tackle Tracker Info":
+    st.header("QB Tackle Tracker Info")
 
-#     owners = list(owner_stats.keys())
-#     a = st.selectbox("Owner A", owners)
-#     b = st.selectbox("Owner B", owners)
+    impact_table = [
+    {
+        "Label": "Win",
+        "Meaning": "The QB tackle points flipped the outcome of the matchup in the owner's favor.",
+    },
+    {
+        "Label": "LMAOOO STILL LOST",
+        "Meaning": "You somehow still lost your matchup despite having 100 bonus points. Shame.",
+    },
+    {
+        "Label": "No affect",
+        "Meaning": "The owner would have won this matchup without the bonus points.",
+    },
+    {
+        "Label": "Benched",
+        "Meaning": "The QB was on the owner's bench and they wasted 100 points.",
+    },
+    {
+        "Label": "Bye Week",
+        "Meaning": "The QBs owner was on a Bye week so they did not get to take advantage of the tackle.",
+    },
+    {
+        "Label": "Free Agent",
+        "Meaning": "The QB was not rostered by any team when they made a tackle.",
+    }
+    ]
 
-#     st.write("Coming soon: head-to-head tackle analysis!")
+    st.dataframe(impact_table)

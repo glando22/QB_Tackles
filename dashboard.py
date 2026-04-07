@@ -2,6 +2,7 @@
 import streamlit as st
 from data_loader import load_week
 from aggregator import aggregate_season
+import pandas as pd
 
 def resolve_owner(tackle):
     if tackle["owner"]["user_id"] == "-1": 
@@ -37,7 +38,7 @@ if page == "Weekly Report":
     st.header("Weekly Tackle Report")
     col_yr,col_wk = st.columns(2)
     with col_yr:
-        year = st.selectbox("Select Year", ["2025", "2026"],width=100)  # Placeholder for future years
+        year = st.selectbox("Select Year", ["2025", "2026"],width=100)  
     with col_wk:
         week = st.selectbox("Select Week", list(range(1, 19)),width=100)  
     data = load_week(week)
@@ -109,9 +110,43 @@ elif page == "Team Profiles":
 
     owner=owner_options[selected_display_name]
     stats = owner_stats[owner]
+    df = [
+        {
+        "Label": "Tackles For",
+        "Meaning": stats["tackles_for"],
+        },
+        {
+        "Label": "Total Points For",
+        "Meaning": stats["total_points_for"]
+        },
+        {
+        "Label": "Wins Due to Tackles",
+        "Meaning": stats["impact_wins"],
+        },
+        {
+        "Label": "Tackles Against",
+        "Meaning": stats["tackles_against"],
+        },
+        {
+        "Label": "Total Points Against",
+        "Meaning": stats["total_points_against"]
+        },
+        {
+        "Label": "Losses Caused by Tackles",
+        "Meaning": stats["losses"],
+        },
+        {
+        "Label": "Tackles Left on the Bench",
+        "Meaning": stats["benched"],
+        },
+        {
+        "Label": "Tackles During a Bye",
+        "Meaning": stats["bye_week"],
+        },
+    ]
 
     st.subheader(f"{stats['display_name']} — {stats['team_name']}")
-    st.json(stats)
+    st.dataframe(df)
 
 elif page=="QB Tackle Tracker Info":
     st.header("QB Tackle Tracker Info")

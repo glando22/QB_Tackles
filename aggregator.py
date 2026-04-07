@@ -28,6 +28,9 @@ def aggregate_season():
         "benched": 0,
         "bye_week": 0,
         "free_agent": 0,
+        "total_points_for": 0,
+        "total_points_against": 0,
+        "losses": 0,
     })
     for member in member_data:
         owner_stats[member["user_id"]]["display_name"] = member["display_name"]
@@ -55,11 +58,15 @@ def aggregate_season():
         owner_stats[owner_id]["display_name"] = owner["display_name"]
         owner_stats[owner_id]["tackles_for"] += t["count"]
         owner_stats[owner_id][impact_key(impact)] += 1
+        owner_stats[owner_id]["total_points_for"]+=t["points"]
 
         # Tackles against
         owner_stats[opp_id]["tackles_against"] += t["count"]
         owner_stats[opp_id]["team_name"] = opp["team_name"]
         owner_stats[opp_id]["display_name"] = opp["display_name"]
+        if impact == "Win":
+            owner_stats[opp_id]["losses"] += 1
+        owner_stats[opp_id]["total_points_against"] += t["points"]
 
     return qb_stats, owner_stats
 

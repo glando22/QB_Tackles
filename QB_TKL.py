@@ -19,22 +19,31 @@ class League:
 
         # load Sleeper data and populate members
         self.load_league_members()
-        
+        self.export_league_members()
         self.placeholder=LeagueMember("-1", "Placeholder Member", "Placeholder Team", "-1")
 
         # load current tackle data from files if it exists.
         self.load_current_tackle_data()
-        
-    def compute_weekly_impact(self,week):
+
+    def export_league_members(league, filename="league_members.json"):
+        members_list = [
+            member.to_dict()
+            for member in league.league_members.values()
+        ]
+
+        with open(filename, "w") as f:
+            json.dump(members_list, f, indent=4)
+  
+    def compute_weekly_impact(self,week,year):
         for tackle in self.tackle_events:
             if tackle.week != week or tackle.impact !="NONE":
                 continue
             # Recalculate impact based on current points for and against
 
 
-            tackle_for_points = sum(t.points for t in tackle.owner.tackles_for if t.week == week)
+            tackle_for_points = sum(t.points for t in tackle.owner.tackles_for if t.week == week and t.year == year)
             team_points = tackle.team_points
-            tackle_against_points = sum(t.points for t in tackle.opponent_owner.tackles_for if t.week == week)
+            tackle_against_points = sum(t.points for t in tackle.opponent_owner.tackles_for if t.week == week and t.year == year)
             opp_points = tackle.opp_points
             diff = team_points - opp_points- tackle_against_points
             if diff > 0:
@@ -65,14 +74,17 @@ class League:
             self.league_members[league_member.display_name]=league_member
             self.roster_id_map[roster_id]=league_member
             self.league_members_list.append(f'{display_name}/{team_name}')
+        
+        
 
 
     def placeholder_member(self):
         return self.placeholder
     
     def load_current_tackle_data(self):
+        year="2024"
         for week in range(1, 19):
-            file_path = Path (f"data/week_{week}_tackles.json")
+            file_path = Path (f"data/week_{week}_{year}_tackles.json")
             if not file_path.exists():
                 continue
 
@@ -108,12 +120,12 @@ class League:
         return qb
     
     # This function creates a Tackle object for a given QB tackle event and adds it to the league's list of tackle events. It also updates the relevant QB's tackle count for the season.
-    def record_tackle(self, qb, owner, opponent_owner, game_id, week, count,points,impact,team_points,opp_points):
-        key=(qb.espn_id, game_id, week)
+    def record_tackle(self, qb, owner, opponent_owner, game_id, week,year, count,points,impact,team_points,opp_points):
+        key=(qb.espn_id, game_id, week, year)
         if key in self.tackle_keys:
             print(f"Tackle event for QB {qb.name} in game {game_id} week {week} already recorded. Skipping duplicate.")
             return  # Tackle event already recorded, skip to avoid duplicates
-        tackle_event = Tackle(qb, owner, opponent_owner, game_id, week, count,points,impact,team_points,opp_points)
+        tackle_event = Tackle(qb, owner, opponent_owner, game_id, week,year, count,points,impact,team_points,opp_points)
         self.tackle_events.append(tackle_event)
         qb.record_tackle(tackle_event)
 
@@ -121,15 +133,15 @@ class League:
 
 
     # This function outputs the tackle events for a given week, along with the impact of each tackle on the league and the relevant owners. It also includes special handling for free agents and bye weeks.
-    def output_week_tackles(self,week):
-        week_tackles = [t for t in self.tackle_events if t.week == week]
+    def output_week_tackles(self,week,year):
+        week_tackles = [t for t in self.tackle_events if t.week == week and t.year == year]
         
-        print(f"QB Tackles for Week {week}")
+        print(f"QB Tackles for Week {week}, {year}")
         print("-------------------------")
-        print(f"There were {len(week_tackles)} QB tackles in Week {week}.")
+        print(f"There were {len(week_tackles)} QB tackles in Week {week}, {year}.")
         
         for tackle in week_tackles:
-            if tackle.week != week:
+            if tackle.week != week or tackle.year != year:
                 continue
             if tackle.impact=="Free Agent":
                 impact_message = f"{tackle.qb.name}, {tackle.qb.nfl_team} had {tackle.count} tackle(s) but is a free agent, so their tackles had no impact on the league."
@@ -218,12 +230,13 @@ class Quarterback:
 
 class Tackle:
     # This class represents a tackle event. It stores the quarterback involved in the tackle, the owner of the quarterback, the opponent owner, the game ID, the week of the season, the count of tackles, the points awarded for the tackle, and the impact of the tackle on the league.
-    def __init__(self, qb, owner, opponent_owner, game_id, week, count,points,impact,team_points,opp_points):
+    def __init__(self, qb, owner, opponent_owner, game_id, week,year, count,points,impact,team_points,opp_points):
         self.qb = qb
         self.owner = owner
         self.opponent_owner = opponent_owner
         self.game_id = game_id
         self.week = week
+        self.year=year
         self.count = count
         self.points=points
         self.impact=impact
@@ -240,6 +253,7 @@ class Tackle:
             "owner": self.owner.to_dict(),
             "opponent": self.opponent_owner.to_dict(),
             "week": self.week,
+            "year": self.year,
             "game_id": self.game_id,
             "count": self.count,
             "points": self.points,
@@ -266,6 +280,7 @@ class Tackle:
             opponent_owner=opponent,
             game_id=data["game_id"],
             week=data["week"],
+            year=data["year"],
             count=data["count"],
             points=data["points"],
             impact=data["impact"],
@@ -274,13 +289,13 @@ class Tackle:
         )
 
     def key(self):
-        return (self.qb.espn_id, self.game_id, self.week)
+        return (self.qb.espn_id, self.game_id, self.week,self.year)
 
     def __repr__(self):
         return (f"<Tackle QB={self.qb.name}, "
                 f"Owner={self.owner.display_name}, "
                 f"Against={self.opponent_owner.display_name}, "
-                f"Week={self.week}, Count={self.count}, "
+                f"Week={self.week}, Year={self.year}, Count={self.count}, "
                 f"Points={self.points}, Impact={self.impact}"
                 )
 
@@ -313,29 +328,36 @@ def QB_Season_Total():
     print()
     print(f"There were {total_tkl} total QB tackles in the season!")
 
+
+
+
 # This function is the main function that processes the QB tackles for a given week. It retrieves the list of games for the week from ESPN.
 # Calls the function to get the QB tackles for each game, and then records the tackle events in the league. 
 # It also includes functionality to save the tackle events to a file and to skip processing if the data has already been saved.
-def scoreboard(week,save):
+def scoreboard(week,year,save):
     overwrite=""
     #check that the week has already been saved or not. If so, skip API calls and just read from file.
-    file_path = Path(f"week_{week}_tackles.json")
+    file_path = Path(f"data/week_{week}_{year}_tackles.json")
     if file_path.exists():
         if save==1:
-            overwrite = get_user_input_from_options(f"Week {week} has already been processed and saved to {file_path}. Do you want to overwrite it?", ["Yes", "No"])                                                 
+            overwrite = get_user_input_from_options(f"Week {week}, {year} has already been processed and saved to {file_path}. Do you want to overwrite it?", ["Yes", "No"])                                                 
         if overwrite.lower() not in ["y", "yes"]: 
-            league.output_week_tackles(week)
+            league.output_week_tackles(week,year)
             return
     else: 
         if save==0:
-            print(f"Data for week {week} doesn't exist yet. Contact your league manager to update the data.")
+            print(f"Data for week {week}, {year} doesn't exist yet. Contact your league manager to update the data.")
             return
    
 
     # url for list of every game in a given week
-    scoreboard_url="https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?week="+str(week)
+    # scoreboard_url="https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?week="+str(week)+"&year="+str(year)
+    scoreboard_url = f"https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/{year}/types/2/weeks/{week}/events"
     scoreboard_raw=get_json_response(scoreboard_url)
-    games=scoreboard_raw["events"]
+    # games=scoreboard_raw["events"]
+    games=scoreboard_raw["items"]
+
+    
     
 
     # URL for all Sleeper matchups in a given week
@@ -345,18 +367,24 @@ def scoreboard(week,save):
     league_member_url=(f"http://api.sleeper.app/v1/league/{LEAGUE_ID}/users")
     league_users=get_json_response(league_member_url)
     for game in games:
-        game_id=game["id"]
-        game_name=game["name"]
+        game_id=game["$ref"].split("/")[-1].split("?")[0]
+        game_name=get_game_name(game_id)
+        # game_name=game["name"]
         print(f"Processing {game_name}, {game_id}...{games.index(game)+1}/{len(games)}.")
         # now call to specific game stats page
         sleeper_stats_list=QB_Tackles_In_Game(game_id,game_name,sleeper_matchups)
         for sleeper_stats in sleeper_stats_list:
             if sleeper_stats and sleeper_stats['count'] > 0:
                 print(f"{sleeper_stats['qb'].name} had a tackle. Recording tackle event...")
-                league.record_tackle(sleeper_stats['qb'],sleeper_stats['owner'],sleeper_stats['opponent'],game_id,week,sleeper_stats['count'],sleeper_stats['points'],sleeper_stats['impact'],sleeper_stats['team_points'],sleeper_stats['opp_points'])
-    league.compute_weekly_impact(week)
-    league.output_week_tackles(week)
-    save_tackle_events_to_file(week)
+                league.record_tackle(sleeper_stats['qb'],sleeper_stats['owner'],sleeper_stats['opponent'],game_id,week,year,sleeper_stats['count'],sleeper_stats['points'],sleeper_stats['impact'],sleeper_stats['team_points'],sleeper_stats['opp_points'])
+    league.compute_weekly_impact(week,year)
+    league.output_week_tackles(week,year)
+    save_tackle_events_to_file(week,year)
+
+def get_game_name(game_id):
+    game_url="https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event="+str(game_id)
+    game_raw=get_json_response(game_url)
+    return game_raw["header"]["competitions"][0]["competitors"][0]["team"]["displayName"]+" vs. "+game_raw["header"]["competitions"][0]["competitors"][1]["team"]["displayName"]
 
 # This function takes a game ID and retrieves the boxscore data for the game from ESPN. 
 # It then processes the defensive statistics to find any tackles made by QBs. If it finds any, it creates a QB object and calls the sleeper_tackle function to determine the impact of the tackle on the league. 
@@ -415,13 +443,13 @@ def get_current_week():
     return current_week  
 
 # This function takes a week number and saves the tackle events for that week to a JSON file. 
-def save_tackle_events_to_file(week):
+def save_tackle_events_to_file(week,year):
     data=[]
     for tackle in league.tackle_events:
-        if tackle.week != week:
+        if tackle.week != week or tackle.year!=year:
             continue    
         data.append(tackle.to_dict())
-    with open(f"week_{week}_tackles.json", "w") as f:
+    with open(f"data/week_{week}_{year}_tackles.json", "w") as f:
         json.dump(data, f, indent=4)
 
      
@@ -552,7 +580,7 @@ def get_user_sleeper_id(roster_id,sleeper_rosters):
 # This function prompts the user to input an NFL week number (1-18) or "all" to process all weeks. 
 # It validates the input and calls the scoreboard function for the specified week(s). 
 # It also includes an option to exit the program.
-def week_input(user_role,save):
+def week_input(user_role,save, year="2025"):
     # User input for an NFL week
 
     while True:
@@ -565,19 +593,19 @@ def week_input(user_role,save):
                 print()
                 print("Looping through all weeks and saving to files.")
                 for i in range(1,19):
-                    scoreboard(i,save)
+                    scoreboard(i, year, save)
                 return
             if week == "current":
                 week=get_current_week()
                 print(f"Processing current week, week {week}...")
-                scoreboard(week,save)
+                scoreboard(week, year, save)
                 return
             week = int(week)
             if 1 <= week <= 18:
                 print()
-                print(f"Quarterback Tackles for Week {week}")
+                print(f"Quarterback Tackles for Week {week}, {year}")
                 print("--------------------------------")
-                scoreboard(week,save)
+                scoreboard(week, year, save)
                 return
                 
             
@@ -627,7 +655,7 @@ def qb_tkl():
             member_profile_input = get_user_input_from_options("Select a league member to view their profile:", league.league_members_list)
             member_profile(member_profile_input.split("/")[0])  # Extract display name from "Display Name/Team Name" format  
         elif operation == "Weekly Tackles":
-            week_input(user_role,save)
+            week_input(user_role, save,year="2024")
         keep_going = get_user_input_from_options("Do you want to perform another operation?", ["Yes", "No"])
         
 def member_profile(display_name):

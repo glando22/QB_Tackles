@@ -183,10 +183,13 @@ elif page == "Team Profiles":
             elif t["impact"] == "Bye Week":
                 impact_message = "You missed out on the points because you were on a bye week. Should've saved it when you needed it! Unfortunate!"
 
+            if year == "All-time":
+                    st.info(f"During your matchup against {resolve_opponent(t)} in week {t['week']} of {t['year']}, {t['qb']['name']} ({t['qb']['nfl_team']}) made {t['count']} tackles. {impact_message}")
+            else:
+                st.info(f"During your week {t['week']} matchup against {resolve_opponent(t)}, {t['qb']['name']} ({t['qb']['nfl_team']}) made {t['count']} tackles. {impact_message}")
 
-            st.info(f"During your week {t['week']} matchup against {resolve_opponent(t)}, {t['qb']['name']} ({t['qb']['nfl_team']}) made {t['count']} tackles. {impact_message}")
-    else:
-        st.info("Wow. No tackles for you at all this season. It must have been frustrating watching your fellow league members bask in the points and glory.")
+        else:
+            st.info("Wow. No tackles for you at all this season. It must have been frustrating watching your fellow league members bask in the points and glory.")
 elif page=="QB Tackle Tracker Info":
     st.header("QB Tackle Tracker Info")
 

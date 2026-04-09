@@ -9,7 +9,7 @@ DATA_DIR = Path("data")
 def load_week(week: int,year):
     path = DATA_DIR / f"week_{week}_{year}_tackles.json"
     if not path.exists():
-        return {"This week has not happened yet!"}
+        return [{"message": "This week has not happened yet!"}]
     with open(path, "r") as f:
         return json.load(f)
     

@@ -1,6 +1,6 @@
 # dashboard.py
 import streamlit as st
-from data_loader import load_week
+from data_loader import load_week,load_all_weeks
 from aggregator import aggregate_season
 import pandas as pd
 
@@ -29,7 +29,7 @@ page = st.sidebar.radio(
     ["Weekly Report", "Season Leaderboards", "Team Profiles","QB Tackle Tracker Info"]
 )
 
-qb_stats, owner_stats = aggregate_season()
+results = aggregate_season()
 
 # -------------------------
 # WEEKLY REPORT
@@ -38,11 +38,13 @@ if page == "Weekly Report":
     st.header("Weekly Tackle Report")
     col_yr,col_wk = st.columns(2)
     with col_yr:
-        year = st.selectbox("Select Year", ["2025", "2026"],width=100)  
+        year = st.selectbox("Select Year", ["2024","2025", "2026"],width=100,index=1)  
     with col_wk:
         week = st.selectbox("Select Week", list(range(1, 19)),width=100)  
-    data = load_week(week)
-
+    data = load_week(week,year)
+    if data == "This week has not happened yet!":
+        st.warning("This week has not happened yet!")
+        st.stop()
     weekly_table= [{
         
         "QB": f"{t["qb"]["name"]} - {t["qb"]["nfl_team"]}",
@@ -65,20 +67,25 @@ if page == "Weekly Report":
 elif page == "Season Leaderboards":
     st.header("Season Leaderboards")
 
+    year = st.selectbox("Select Year", ["2024","2025", "2026","All-time"],index=1)  
+    data = results["all"] if year == "All-time" else results[year]
+    qb_stats = data["qb_stats"]
+    owner_stats = data["owner_stats"]
+
     st.subheader(f"Top QBs by Tackles - Total Tackles: {sum(v['tackles'] for v in qb_stats.values())}")
-    year = st.selectbox("Select Year", ["2025", "2026","All-time"])  
+
     qb_table = [
         {
             "QB": v["name"],
             "Team": v["team"],
             "Tackles": v["tackles"],
-            "Impact Wins": v["impact_wins"]
-            
+            "Impact Wins": v["impact_wins"]  
         }
-        for v in qb_stats.values()
+        for v in qb_stats.values() 
     ]
     qb_table = sorted(qb_table, key=lambda x: x["Tackles"], reverse=True)
-    st.dataframe(qb_table,height="content")
+    if qb_table:
+        st.dataframe(qb_table,height="content")
 
     st.subheader("Top Owners by Tackles For")
     owner_table = [
@@ -98,7 +105,10 @@ elif page == "Season Leaderboards":
 # -------------------------
 elif page == "Team Profiles":
     st.header("Team Profiles")
-    year = st.selectbox("Select Year", ["2025", "2026","All-time"]) 
+    year = st.selectbox("Select Year", ["2024","2025", "2026","All-time"],index=1) 
+    data = results["all"] if year == "All-time" else results[year]
+    qb_stats = data["qb_stats"]
+    owner_stats = data["owner_stats"]
 
     owner_options = {
         f"{v["display_name"]} - {v["team_name"]}": k
@@ -148,6 +158,25 @@ elif page == "Team Profiles":
     st.subheader(f"{stats['display_name']} — {stats['team_name']}")
     st.dataframe(df)
 
+    tackles=load_all_weeks(year)
+    team_tackles = [t for t in tackles if t["owner"]["user_id"] == owner]
+    if team_tackles:
+        for t in team_tackles:
+            if t["impact"] == "Win":
+                impact_message = "This QB's extraordinary effort gave you a win that week! Congratulations!"
+            elif t["impact"] == "LMAOOO STILL LOST":
+                impact_message = "Despite the QB's heroic tackle and 100 bonus points, you still lost. Embarassing!"
+            elif t["impact"] == "No affect":
+                impact_message = "You would've won your matchup even without this QB's heroic actions! Bravo!"
+            elif t["impact"] == "Benched":
+                impact_message = "This QB was on your bench that week. What a blunder from the team's management!"
+            elif t["impact"] == "Bye Week":
+                impact_message = "You missed out on the points because you were on a bye week. Should've saved it when you needed it! Unfortunate!"
+
+
+            st.info(f"During your week {t['week']} matchup against {resolve_opponent(t)}, {t['qb']['name']} ({t['qb']['nfl_team']}) made {t['count']} tackles. {impact_message}")
+    else:
+        st.info("Wow. No tackles for you at all this season. It must have been frustrating watching your fellow league members bask in the points and glory.")
 elif page=="QB Tackle Tracker Info":
     st.header("QB Tackle Tracker Info")
 
@@ -179,3 +208,5 @@ elif page=="QB Tackle Tracker Info":
     ]
 
     st.dataframe(impact_table)
+
+

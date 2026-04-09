@@ -42,7 +42,7 @@ if page == "Weekly Report":
     with col_wk:
         week = st.selectbox("Select Week", list(range(1, 19)),width=100)  
     data = load_week(week,year)
-    if data == "This week has not happened yet!":
+    if "This week has not happened yet!" in data:
         st.warning("This week has not happened yet!")
         st.stop()
     weekly_table= [{
@@ -159,7 +159,11 @@ elif page == "Team Profiles":
     st.dataframe(df)
 
     tackles=load_all_weeks(year)
-    team_tackles = [t for t in tackles if t["owner"]["user_id"] == owner]
+    incomplete_weeks = [t for t in tackles if "This week has not happened yet!" in t]
+    if len(incomplete_weeks) == 18 and year != "All-time":
+        st.info("The season hasn't started yet. Check back once the season starts to see how your team is doing!")
+        st.stop()
+    team_tackles = [t for t in tackles if "This week has not happened yet!" not in t and t["owner"]["user_id"] == owner]
     if team_tackles:
         for t in team_tackles:
             if t["impact"] == "Win":

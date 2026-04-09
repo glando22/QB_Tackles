@@ -161,7 +161,7 @@ elif page == "Team Profiles":
     st.dataframe(df)
 
     tackles=load_all_weeks(year)
-    incomplete_weeks = [t for t in tackles if "This week has not happened yet!" in t]
+    incomplete_weeks = [t for t in tackles if "message" in t]
     if len(incomplete_weeks) == 18 and year != "All-time":
         st.info("The season hasn't started yet. Check back once the season starts to see how your team is doing!")
         st.stop()

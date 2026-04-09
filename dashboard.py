@@ -160,7 +160,12 @@ elif page == "Team Profiles":
     st.subheader(f"{stats['display_name']} — {stats['team_name']}")
     st.dataframe(df)
 
-    tackles=load_all_weeks(year)
+    if year != "All-time":
+        tackles=load_all_weeks(year)
+    else:        
+        tackles = []
+        for year in ["2024","2025","2026"]:
+            tackles.extend(load_all_weeks(year)) 
     incomplete_weeks = [t for t in tackles if "message" in t]
     if len(incomplete_weeks) == 18 and year != "All-time":
         st.info("The season hasn't started yet. Check back once the season starts to see how your team is doing!")

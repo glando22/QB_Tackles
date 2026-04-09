@@ -44,9 +44,9 @@ def aggregate_season():
             owner_stats[member["user_id"]]["team_name"] = member["team_name"]
     
         for t in tackle_data[year]:
-            if "This week has not happened yet!" in t:
+            
+            if "message" in t and t["message"] == "This week has not happened yet!":
                 continue
-
 
             qb = t["qb"]
             owner = t["owner"]

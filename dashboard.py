@@ -208,5 +208,3 @@ elif page=="QB Tackle Tracker Info":
     ]
 
     st.dataframe(impact_table)
-
-

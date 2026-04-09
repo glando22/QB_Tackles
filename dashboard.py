@@ -164,8 +164,8 @@ elif page == "Team Profiles":
         tackles=load_all_weeks(year)
     else:        
         tackles = []
-        for year in ["2024","2025","2026"]:
-            tackles.extend(load_all_weeks(year)) 
+        for y in ["2024","2025","2026"]:
+            tackles.extend(load_all_weeks(y)) 
     team_tackles = [t for t in tackles if "message" not in t and t["owner"]["user_id"] == owner]
     incomplete_weeks = [t for t in tackles if "message" in t]
     if len(incomplete_weeks) == 18 and year != "All-time":

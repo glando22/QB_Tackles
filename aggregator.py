@@ -5,7 +5,7 @@ from data_loader import load_all_weeks,load_member_data
 def aggregate_season():
     member_data= load_member_data()
     tackle_data = {}
-    years = ["2023", "2024", "2025","2026"]
+    years = ["2024", "2025","2026"]
     for year in years:
         tackle_data[year] = load_all_weeks(year)
 
@@ -44,6 +44,10 @@ def aggregate_season():
             owner_stats[member["user_id"]]["team_name"] = member["team_name"]
     
         for t in tackle_data[year]:
+            if "This week has not happened yet!" in t:
+                continue
+
+
             qb = t["qb"]
             owner = t["owner"]
             opp = t["opponent"]

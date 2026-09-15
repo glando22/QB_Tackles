@@ -1,0 +1,30 @@
+[
+    {
+        "qb": {
+            "espn_id": "4036378",
+            "sleeper_id": "6804",
+            "name": "Jordan Love",
+            "nfl_team": "Green Bay Packers"
+        },
+        "owner": {
+            "user_id": "1000064656527921152",
+            "display_name": "cdot25",
+            "team_name": "WILSONNNNNNN",
+            "roster_id": 6
+        },
+        "opponent": {
+            "user_id": "932071844285353984",
+            "display_name": "landisgr",
+            "team_name": "Pitts Sniffer",
+            "roster_id": 2
+        },
+        "week": 1,
+        "year": "2026",
+        "game_id": "401872927",
+        "count": 1,
+        "points": 25,
+        "impact": "LMAOOO STILL LOST",
+        "team_points": 111.84,
+        "opp_points": 186.04
+    }
+]

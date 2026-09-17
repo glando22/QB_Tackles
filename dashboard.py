@@ -38,7 +38,7 @@ if page == "Weekly Report":
     st.header("Weekly Tackle Report")
     col_yr,col_wk = st.columns(2)
     with col_yr:
-        year = st.selectbox("Select Year", ["2024","2025", "2026"],width=100,index=1)  
+        year = st.selectbox("Select Year", ["2024","2025", "2026"],width=100,index=2)  
     with col_wk:
         week = st.selectbox("Select Week", list(range(1, 19)),width=100)  
     data = load_week(week,year)
@@ -69,7 +69,7 @@ if page == "Weekly Report":
 elif page == "Season Leaderboards":
     st.header("Season Leaderboards")
 
-    year = st.selectbox("Select Year", ["2024","2025", "2026","All-time"],index=1)  
+    year = st.selectbox("Select Year", ["2024","2025", "2026","All-time"],index=2)  
     data = results["all"] if year == "All-time" else results[year]
     qb_stats = data["qb_stats"]
     owner_stats = data["owner_stats"]
@@ -107,7 +107,7 @@ elif page == "Season Leaderboards":
 # -------------------------
 elif page == "Team Profiles":
     st.header("Team Profiles")
-    year = st.selectbox("Select Year", ["2024","2025", "2026","All-time"],index=1) 
+    year = st.selectbox("Select Year", ["2024","2025", "2026","All-time"],index=2) 
     data = results["all"] if year == "All-time" else results[year]
     qb_stats = data["qb_stats"]
     owner_stats = data["owner_stats"]

@@ -1,0 +1,58 @@
+[
+    {
+        "qb": {
+            "espn_id": "2969939",
+            "sleeper_id": "2306",
+            "name": "Jameis Winston",
+            "nfl_team": "New York Giants"
+        },
+        "owner": {
+            "user_id": "1130229940500324352",
+            "display_name": "macormacker",
+            "team_name": "Sun Darts",
+            "roster_id": 5
+        },
+        "opponent": {
+            "user_id": "471449004316553216",
+            "display_name": "Donny514",
+            "team_name": "Aubrey\u2019s Third Leg",
+            "roster_id": 8
+        },
+        "week": 4,
+        "year": "2026",
+        "game_id": "401872966",
+        "count": 1,
+        "points": 25,
+        "impact": "Win",
+        "team_points": 128.32,
+        "opp_points": 147.5
+    },
+    {
+        "qb": {
+            "espn_id": "4038941",
+            "sleeper_id": "6797",
+            "name": "Justin Herbert",
+            "nfl_team": "Los Angeles Chargers"
+        },
+        "owner": {
+            "user_id": "1000064656527921152",
+            "display_name": "cdot25",
+            "team_name": "WILSONNNNNNN",
+            "roster_id": 6
+        },
+        "opponent": {
+            "user_id": "1131005359809851392",
+            "display_name": "meljos",
+            "team_name": "Achane Smoking\ud83d\udeac",
+            "roster_id": 9
+        },
+        "week": 4,
+        "year": "2026",
+        "game_id": "401872977",
+        "count": 1,
+        "points": 25,
+        "impact": "No affect",
+        "team_points": 141.14,
+        "opp_points": 127.86
+    }
+]
